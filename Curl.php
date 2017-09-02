@@ -46,7 +46,7 @@ class Curl
 		$this->processed_sets = [];
 		$this->connect_timeout = 1;
 		$this->timeout = 30;
-		$this->debug = true;
+		$this->debug = false;
 	}
 
 	public function __destruct()
@@ -227,5 +227,5 @@ class Curl
 }
 
 $instance = new Curl();
-$res = $instance->query(['wd'=>'你好啊'])->get('http://www.baidu.com/s');
-var_dump($res);
+$res = $instance->query(['wd'=>'hello world'])->get('http://www.baidu.com/s');
+echo $res;
