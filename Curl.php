@@ -51,7 +51,9 @@ class Curl
 
 	public function __destruct()
 	{
-		curl_close($this->ch);
+		if (is_resource($this->ch)) {
+			curl_close($this->ch);
+		}
 	}
 
 	private function setRequestLine()
@@ -71,7 +73,7 @@ class Curl
 		$this->setOpt(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_NONE);
 	}
 
-	public function setRequestHeader()
+	private function setRequestHeader()
 	{
 		foreach ($this->request_sets as $set) {
 			if (! in_array($set, $this->processed_sets)) {
@@ -82,7 +84,7 @@ class Curl
 		}
 	}
 
-	public function setRequestBody()
+	private function setRequestBody()
 	{
 		if ($this->query) {
 			if ($this->method == 'get') {
@@ -106,13 +108,14 @@ class Curl
 	{
 		curl_setopt_array($this->ch, $this->options);
 		curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->raw_options);
+		curl_setopt($this->ch, CURLOPT_HEADER, false);
 		curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
 		curl_setopt($this->ch, CURLOPT_TIMEOUT, $this->timeout);
 		if ($this->debug) {
+			$output = fopen('php://temp', 'rw');
 			curl_setopt($this->ch, CURLOPT_VERBOSE, true);
-			curl_setopt($this->ch, CURLOPT_HEADER, true);
-			curl_setopt($this->ch, CURLINFO_HEADER_OUT, true);
+			curl_setopt($this->ch, CURLOPT_STDERR, $output);
 		}
 		$res = curl_exec($this->ch);
 		if ($res === false) {
@@ -122,7 +125,9 @@ class Curl
 			}
 		}
 		if ($this->debug) {
-			print_r(curl_getinfo($this->ch));
+			rewind($output);
+			echo stream_get_contents($output),"\n\n";
+			fclose($output);
 		}
 		return $res;
 	}
@@ -133,7 +138,7 @@ class Curl
 		if (! in_array($name, $this->allowed_methods)) {
 			exit('unspported request method');
 		}
-		$this->method($name);
+		$this->method = $name;
 		$this->url(array_shift($arguments));
 		$this->setRequestLine();
 		$this->setRequestHeader();
@@ -154,7 +159,7 @@ class Curl
 	public function agent($agent = '')
 	{
 		if ($agent) {
-			$this->setRawOpt("User-Agent: $agent");
+			$this->setOpt(CURLOPT_USERAGENT, $agent);
 		}
 		$this->processed_sets[] ='agent';
 		return $this;
@@ -163,7 +168,7 @@ class Curl
 	public function referer($referer = '')
 	{
 		if ($referer) {
-			$this->setRawOpt("Referer: $referer");
+			$this->setRawOpt(CURLOPT_REFERER, $referer);
 		} else {
 			$this->setOpt(CURLOPT_AUTOREFERER, true);
 		}
@@ -213,19 +218,21 @@ class Curl
 		return $this;
 	}
 
-	public function method($name)
+	public function debug($debug = false)
 	{
-		$this->method = $name;
+		$this->debug = $debug;
 		return $this;
 	}
 
-	public function url($url)
+	public function url($url = '')
 	{
-		$this->url = $url;
+		if ($url) {
+			$this->url = $url;
+		}
 		return $this;
 	}
 }
 
 $instance = new Curl();
-$res = $instance->query(['wd'=>'hello world'])->get('http://www.baidu.com/s');
+$res = $instance->debug(true)->query(['wd'=>'hello world'])->get('http://www.baidu.com/s');
 echo $res;
