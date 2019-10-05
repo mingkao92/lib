@@ -240,8 +240,3 @@ class Curl
         return $this;
     }
 }
-
-# Usage:
-$instance = new Curl();
-$res = $instance->debug(true)->query(['wd' => 'hello world'])->get('http://www.baidu.com/s');
-echo $res;
