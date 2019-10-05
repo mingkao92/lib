@@ -6,7 +6,7 @@ my test php lib<br /><br />
 #### Simple Http Request
 Usage:
 ```php
-include 'Curl.php';
+include 'Http/Curl.php';
 
 $instance = new Curl();
 
