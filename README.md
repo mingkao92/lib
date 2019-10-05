@@ -8,6 +8,7 @@ Usage:
 ```php
 include 'Http/Curl.php';
 
+
 $instance = new Curl();
 
 $res = $instance->debug(true)
