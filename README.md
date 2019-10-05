@@ -9,9 +9,9 @@ Usage:
 include 'Http/Curl.php';
 
 
-$instance = new Curl();
+$http = new Curl();
 
-$res = $instance->debug(true)
+$res = $http->debug(true)
     ->query(['wd' => 'hello world'])
     ->get('http://www.baidu.com/s');
 
